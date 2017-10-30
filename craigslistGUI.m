@@ -57,6 +57,6 @@ for ct=1:75
         break;
     end
     craigslistread;
-    pause(3600); %Intervals between checking.
+    pause(str2double(searchIntervalV.String)); %Intervals between checking.
 end
 
