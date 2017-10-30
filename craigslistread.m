@@ -1,12 +1,12 @@
 
 %Email Setup
-mail = 'matlabtesting02@gmail.com';    % Replace with your email address
-password = 'password12341.';          % Replace with your email password
-server = 'smtp.gmail.com';     % Replace with your SMTP server
+mail = 'email@example.com';    % Replace with your email address
+password = 'password';          % Replace with your email password
+server = 'smtp.server.com';     % Replace with your SMTP server
 props = java.lang.System.getProperties;
-props.setProperty('mail.smtp.auth','true');
-props.setProperty('mail.smtp.socketFactory.class', 'javax.net.ssl.SSLSocketFactory');
-props.setProperty('mail.smtp.socketFactory.port','465');
+props.setProperty('mail.smtp.auth','true'); % Replace your settings
+props.setProperty('mail.smtp.socketFactory.class', 'javax.net.ssl.SSLSocketFactory');% Replace your settings
+props.setProperty('mail.smtp.socketFactory.port','465');% Replace your settings
 
 % Apply prefs and props
 setpref('Internet','E_mail',mail);
@@ -21,15 +21,21 @@ fileID = fopen('housinglists.txt');
 tempFile = textscan(fileID,'%s');
 savedData=tempFile{1};
 
-link='https://boston.craigslist.org/search/nos/abo?availabilityMode=0&format=rss&hasPic=1&max_price=1600&query=August%201&sort=date';
 
-%Script to read craigslist
+%Script to scrape relevant part of rss feed craigslist, compare to list
+%already saved. Add any new links and email a notification with the url
+
 stuff=webread(link);
-expression = 'resource="http://boston.craigslist.org/nos/abo/+\d*\.html';
-matchStr = regexp(stuff,expression,'match')';
+expression= 'rdf:resource=\"(.*?)\"';
+
+% Regular expression for HTML repersenting the links. Only part of the 
+% retrieved xml data that we need.
+matchStr = regexp(stuff,expression,'match')';  
 
 for ct1=1:length(matchStr)
-    matchStr(ct1)=strrep(matchStr(ct1),'resource="','');
+    temp=char(matchStr(ct1))
+    indx=strfind(temp,'"')
+    matchStr{ct1}=temp(indx(1)+1:indx(2)-1);
     check=0;
     for ct2=1:length(savedData)
         check=strcmp(matchStr{ct1},savedData{ct2})+check;
@@ -44,13 +50,8 @@ for ct1=1:length(matchStr)
         fprintf(fid,'%s\n', t);
         fclose(fid);
         % Send the email
-        sendmail('leokogos@gmail.com', 'New Listing!!', matchStr{ct1});
+        sendmail('receivingemail@mail.com', 'New Listing!!', matchStr{ct1});
         
     end
 end
-
-% % matchStr=flip(matchStr);
-% fid = fopen('testing.txt','w');
-% fprintf(fid,'%s\n', stuff);
-% fclose(fid);
 
